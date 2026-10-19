@@ -1,0 +1,22 @@
+name: "Terraform CI Validation"
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+jobs:
+  terraform:
+    name: "Terraform Validate & Plan"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./environments/demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Fmt
+        run: terraform fmt -check -recursive
+      - name: Terraform Init
+        run: terraform init -backend=false
+      - name: Terraform Validate
+        run: terraform validate
