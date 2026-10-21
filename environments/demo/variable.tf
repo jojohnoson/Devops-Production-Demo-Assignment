@@ -1,11 +1,15 @@
 variable "aws_region" {
   type        = string
-  description = "Target AWS Region"
-  default     = "us-east-1"
+  description = "AWS region to deploy resources"
+  default     = "ap-south-1"
 }
 
-variable "vpc_cidr" {
-  type        = string
-  description = "VPC CIDR block"
-  default     = "10.0.0.0/16"
+variable "public_subnet_cidrs" {
+  type        = list(string)
+  description = "List of CIDR blocks for public subnets"
+}
+
+variable "availability_zones" {
+  type        = list(string)
+  description = "List of availability zones for the subnets"
 }
