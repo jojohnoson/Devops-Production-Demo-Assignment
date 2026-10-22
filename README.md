@@ -251,7 +251,7 @@ aws s3 ls "s3://$BUCKET/uploads/"
 <p align="center">
   <img width="800" alt="Objects stored in the S3 bucket under uploads/" src="https://github.com/user-attachments/assets/1ad8b714-7a1a-4b1a-845a-0752addacebe" />
 </p>
-<p align="center"><em>Uploaded objects in the private S3 bucket under <code>uploads/</code></em></p>
+<p align="center"><em>Lambda Group Log Stream</code></em></p>
 
 <p align="center">
   <img width="700" alt="Upload request through API Gateway" src="https://github.com/user-attachments/assets/d6e73974-91b2-48a0-b2a9-2785f37fbfaa" />
@@ -261,14 +261,14 @@ aws s3 ls "s3://$BUCKET/uploads/"
 <p align="center">
   <img width="700" alt="Rejected upload returns HTTP 400" src="https://github.com/user-attachments/assets/25564e72-2a56-42d0-b0da-60c64471d589" />
 </p>
-<p align="center"><em>Negative test: an invalid file type is rejected by Lambda validation</em></p>
+<p align="center"><em>SSM secure Connection</em></p>
 
 ### CloudWatch logs
 
 <p align="center">
   <img width="800" alt="Lambda CloudWatch logs" src="https://github.com/user-attachments/assets/a517315e-a771-4b7f-a72c-b484435be0f3" />
 </p>
-<p align="center"><em>Lambda function logs in CloudWatch</em></p>
+<p align="center"><em>ECS container logs for nginx-b</em></p>
 
 <p align="center">
   <img width="800" alt="ECS CloudWatch logs for nginx-a" src="https://github.com/user-attachments/assets/4d51b62e-7c4e-43eb-b9c1-2a39a07f70ef" />
@@ -278,12 +278,12 @@ aws s3 ls "s3://$BUCKET/uploads/"
 <p align="center">
   <img width="800" alt="ECS CloudWatch logs for nginx-b" src="https://github.com/user-attachments/assets/db49d51e-c85d-443f-9031-4aac0758e48b" />
 </p>
-<p align="center"><em>ECS container logs for nginx-b</em></p>
+<p align="center"><em>Uploaded objects in the private S3 bucket under uploads/</em></p>
 
 <p align="center">
   <img width="750" alt="ECS CloudWatch log group overview" src="https://github.com/user-attachments/assets/96756e78-ef13-45fc-bec6-7d4b0eba83bb" />
 </p>
-<p align="center"><em>ECS log group in CloudWatch</em></p>
+<p align="center"><em>SSM & Instances check Verification</em></p>
 
 Full command output is stored in [`docs/proof/`](docs/proof/) (`ecs-health-check.txt` and `test-output.txt`).
 
