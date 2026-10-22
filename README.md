@@ -2,6 +2,8 @@
 
 A small, production-style AWS environment (region `ap-south-1`) built entirely with Terraform. Two nginx services run on **ECS (EC2 launch type)** behind **one Application Load Balancer**, and a **serverless file-upload API** (API Gateway, Lambda, S3) sits alongside it. IAM follows least privilege, logs go to CloudWatch, and GitHub Actions validates every change.
 
+## Outputs has been Attached as Screenshots Below 
+
 ## Table of contents
 
 1. [Assignment coverage](#assignment-coverage)
