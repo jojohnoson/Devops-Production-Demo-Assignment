@@ -2,6 +2,8 @@
 
 A small, production-style AWS environment (region `ap-south-1`) built entirely with Terraform. Two nginx services run on **ECS (EC2 launch type)** behind **one Application Load Balancer**, and a **serverless file-upload API** (API Gateway, Lambda, S3) sits alongside it. IAM follows least privilege, logs go to CloudWatch, and GitHub Actions validates every change.
 
+## (Output has been pasted below for verification (Screenshots))
+
 ## Table of contents
 
 1. [Assignment coverage](#assignment-coverage)
@@ -9,13 +11,14 @@ A small, production-style AWS environment (region `ap-south-1`) built entirely w
 3. [Repository layout](#repository-layout)
 4. [Prerequisites](#prerequisites)
 5. [Deploy](#deploy)
-6. [Test](#test)
-7. [Demo proof](#demo-proof)
-8. [Destroy](#destroy)
-9. [IAM policies](#iam-policies)
-10. [CI/CD](#cicd)
-11. [Design decisions](#design-decisions)
-12. [Limitations and next steps](#limitations-and-next-steps)
+6. [Verify the deployment](#verify-the-deployment)
+7. [Test](#test)
+8. [Demo proof](#demo-proof)
+9. [Destroy](#destroy)
+10. [IAM policies](#iam-policies)
+11. [CI/CD](#cicd)
+12. [Design decisions](#design-decisions)
+13. [Limitations and next steps](#limitations-and-next-steps)
 
 ## Assignment coverage
 
@@ -130,16 +133,54 @@ terraform apply tfplan
 
 Wait about 3-5 minutes after `apply` for the EC2 instances to register with ECS and for the ALB targets to turn healthy.
 
-Check that both services are running:
-
-```bash
-CLUSTER=$(terraform output -raw ecs_cluster_name)
-
-aws ecs describe-services --cluster "$CLUSTER" --services nginx-a nginx-b \
-  --query 'services[].{n:serviceName,run:runningCount,want:desiredCount}' --output table
-```
+Then run the checks in [Verify the deployment](#verify-the-deployment).
 
 > **Cost note:** the NAT gateway, ALB and 2x `t3.small` instances cost roughly $0.12-0.15 per hour. Deploy, capture proof, then destroy.
+
+## Verify the deployment
+
+Run this from `environments/demo` after `apply` to confirm the ECS cluster, the EC2 nodes, the services and the ALB targets are all healthy. It also saves the output as proof.
+
+```bash
+cd environments/demo
+ALB=$(terraform output -raw alb_dns_name)
+CLUSTER=$(terraform output -raw ecs_cluster_name)
+ALB_ARN=$(aws elbv2 describe-load-balancers \
+  --query "LoadBalancers[?DNSName=='$ALB'].LoadBalancerArn" --output text)
+
+{
+echo "== 1. Instances in the cluster (expect 2 ARNs) =="
+aws ecs list-container-instances --cluster $CLUSTER --query 'containerInstanceArns' --output text
+
+echo "== 2. Services (expect run=2, want=2 for both) =="
+aws ecs describe-services --cluster $CLUSTER --services nginx-a nginx-b \
+  --query 'services[].{n:serviceName,run:runningCount,want:desiredCount}' --output table
+
+echo "== 3. Target health (expect 2 healthy per target group) =="
+for tg in $(aws elbv2 describe-target-groups --load-balancer-arn $ALB_ARN \
+  --query 'TargetGroups[].TargetGroupArn' --output text); do
+  aws elbv2 describe-target-health --target-group-arn $tg \
+    --query 'TargetHealthDescriptions[].[Target.Id,Target.Port,TargetHealth.State]' --output table
+done
+
+echo "== 4. Traffic split at / (expect both nginx-a and nginx-b) =="
+for i in $(seq 1 20); do curl -s http://$ALB/; done | sort | uniq -c
+
+echo "== 5. Path routing =="
+curl -s http://$ALB/a/
+curl -s http://$ALB/b/
+} 2>&1 | tee ../../docs/proof/ecs-health-check.txt
+```
+
+| Check | Expected result |
+|---|---|
+| 1. Container instances | 2 instance ARNs (one per EC2 node in the Auto Scaling Group) |
+| 2. Services | `nginx-a` and `nginx-b` both show `run=2`, `want=2` |
+| 3. Target health | 2 targets in each target group, all in state `healthy` |
+| 4. Traffic split | Both `nginx-a` and `nginx-b` lines appear in the `uniq -c` output |
+| 5. Path routing | `/a/` returns the nginx-a page, `/b/` returns the nginx-b page |
+
+If a check fails, wait a few minutes and run it again. Newly started nodes and tasks need time to register and pass health checks.
 
 ## Test
 
@@ -217,7 +258,7 @@ aws s3 ls "s3://$BUCKET/uploads/"
 
 <!-- Add after deploying lambda_api: upload curl output, S3 object listing, Lambda CloudWatch logs -->
 
-Full command output is stored in [`docs/proof/`](docs/proof/).
+Full command output is stored in [`docs/proof/`](docs/proof/) (`ecs-health-check.txt` and `test-output.txt`).
 
 ## Destroy
 
