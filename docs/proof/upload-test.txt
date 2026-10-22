@@ -1,0 +1,54 @@
+[31m╷[0m[0m
+[31m│[0m [0m[1m[31mError: [0m[0m[1mOutput "ecs_log_group" not found[0m
+[31m│[0m [0m
+[31m│[0m [0m[0mThe output variable requested could not be found in the state file. If you
+[31m│[0m [0mrecently added this to your configuration, be sure to run `terraform
+[31m│[0m [0mapply`, since the state won't be updated with new output variables until
+[31m│[0m [0mthat command is run.
+[31m╵[0m[0m
+===== API: https://c691j4ge1b.execute-api.ap-south-1.amazonaws.com =====
+===== Bucket: demo-prod-joel =====
+
+--- Valid uploads (expect 200) ---
+PASS  text file (HTTP 200)
+{"message": "uploaded", "key": "uploads/13e6a383b9844eb5a3a7f9c2aa657a9b-test.txt", "size": 37}
+PASS  binary png (base64 path) (HTTP 200)
+PASS  json file (HTTP 200)
+
+--- Rejected uploads ---
+PASS  bad extension .exe (HTTP 400)
+PASS  path traversal name (HTTP 400)
+PASS  missing filename (HTTP 400)
+PASS  empty body (HTTP 400)
+PASS  file over 4 MB (HTTP 413)
+PASS  GET instead of POST (HTTP 404)
+
+--- S3 verification ---
+2026-10-22 17:16:52         37 13e6a383b9844eb5a3a7f9c2aa657a9b-test.txt
+2026-10-22 17:16:52       2000 351e25343aea4b80a52568eaa7c0b28f-test.png
+2026-10-22 17:16:53         13 f2681d41c3be4b3a912fe7f4dcf7ed97-data.json
+PASS  downloaded object matches the uploaded file
+Encryption on object: AES256
+
+--- Generating ECS traffic ---
+
+--- Lambda logs (upload_ok and rejected lines) ---
+2026-10-22T11:46:51 [INFO]	2026-10-22T11:46:51.121Z	7d42f0fc-a8a9-4f24-a9f9-84c254caeaea	{"event": "upload_ok", "key": "uploads/13e6a383b9844eb5a3a7f9c2aa657a9b-test.txt", "size": 37}
+2026-10-22T11:46:51 [INFO]	2026-10-22T11:46:51.535Z	12571930-80d4-4cb0-9fe5-56625de73b07	{"event": "upload_ok", "key": "uploads/351e25343aea4b80a52568eaa7c0b28f-test.png", "size": 2000}
+2026-10-22T11:46:52 [INFO]	2026-10-22T11:46:52.133Z	9c90b349-f054-4070-aa10-58cb5764ceaa	{"event": "upload_ok", "key": "uploads/f2681d41c3be4b3a912fe7f4dcf7ed97-data.json", "size": 13}
+2026-10-22T11:46:53 [WARNING]	2026-10-22T11:46:53.428Z	e09b677c-ab77-46a4-8c43-ac66f6c41bfc	{"event": "rejected", "reason": "bad_filename", "filename": "evil.exe"}
+2026-10-22T11:46:53 [WARNING]	2026-10-22T11:46:53.679Z	9c14b739-bc94-4a0f-9125-887b2e790c30	{"event": "rejected", "reason": "bad_filename", "filename": "../x.txt"}
+2026-10-22T11:46:53 [WARNING]	2026-10-22T11:46:53.902Z	8fd75283-7b57-4b9f-9080-a9bcf2bffaf7	{"event": "rejected", "reason": "bad_filename", "filename": ""}
+2026-10-22T11:46:54 [WARNING]	2026-10-22T11:46:54.124Z	0c45c4af-53d7-4424-bc52-2cfdf5d24981	{"event": "rejected", "reason": "empty_body"}
+2026-10-22T11:46:58 [WARNING]	2026-10-22T11:46:58.038Z	90ba2ba5-d4e3-49e4-a457-5ac95f15c04f	{"event": "rejected", "reason": "too_large", "size": 4300000}
+
+--- ECS container logs: nginx-a ---
+
+aws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:
+Invalid length for parameter logGroupName, value: 0, valid min length: 1
+--- ECS container logs: nginx-b ---
+
+aws: [ERROR]: An error occurred (ParamValidation): Parameter validation failed:
+Invalid length for parameter logGroupName, value: 0, valid min length: 1
+
+===== RESULT: 10 passed, 0 failed =====

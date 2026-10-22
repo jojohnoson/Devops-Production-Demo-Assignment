@@ -2,8 +2,6 @@
 
 A small, production-style AWS environment (region `ap-south-1`) built entirely with Terraform. Two nginx services run on **ECS (EC2 launch type)** behind **one Application Load Balancer**, and a **serverless file-upload API** (API Gateway, Lambda, S3) sits alongside it. IAM follows least privilege, logs go to CloudWatch, and GitHub Actions validates every change.
 
-## (Output has been pasted below for verification (Screenshots))
-
 ## Table of contents
 
 1. [Assignment coverage](#assignment-coverage)
@@ -32,17 +30,6 @@ A small, production-style AWS environment (region `ap-south-1`) built entirely w
 | 4 | **Serverless API:** API Gateway + Lambda + S3, `POST /upload` | HTTP API route `POST /upload`, Python Lambda that validates and stores the file, private S3 bucket with encryption and a 30-day lifecycle rule | `modules/lambda_api` |
 | 5 | **IAM:** least-privilege roles and policies | ECS task execution role, EC2 instance role and instance profile, Lambda execution role, all with scoped permissions | `modules/iam` |
 | 6 | **Observability:** ECS and Lambda logs in CloudWatch | ECS `awslogs` driver to a dedicated log group, Lambda log group, Container Insights enabled | `modules/ecs`, `modules/lambda_api` |
-
-### Bonus items
-
-| Bonus | Status |
-|---|---|
-| Health checks and autoscaling for ECS tasks | Implemented: ALB health checks, CPU target-tracking autoscaling (2-4 tasks) per service |
-| GitHub Actions pipeline (`fmt`, `validate`, optional `plan`) | Implemented, see [CI/CD](#cicd) |
-| ECR and image build pipeline | Not included, see [next steps](#limitations-and-next-steps) |
-| HTTPS on the ALB with ACM | Not included |
-| CI that applies Terraform | Not included |
-| Integration tests in CI | Not included |
 
 ## Architecture
 
@@ -243,20 +230,60 @@ aws s3 ls "s3://$BUCKET/uploads/"
 <p align="center">
   <img width="700" alt="Terminal verification" src="https://github.com/user-attachments/assets/af9aabbc-0699-45e4-bb9e-1d0d4638f952" />
 </p>
+<p align="center"><em>Output of the ECS health check and traffic split commands</em></p>
 
 ### Application Load Balancer
 
 <p align="center">
   <img width="800" alt="ALB and target groups" src="https://github.com/user-attachments/assets/fbeb1b5c-67d3-41e7-b836-51737bab85ed" />
 </p>
+<p align="center"><em>ALB with target groups for nginx-a and nginx-b</em></p>
 
 ### ECS services
 
 <p align="center">
   <img width="800" alt="ECS services running" src="https://github.com/user-attachments/assets/5a7e0518-29f7-4f86-8bbd-8432ba477c9b" />
 </p>
+<p align="center"><em>nginx-a and nginx-b services running</em></p>
 
-<!-- Add after deploying lambda_api: upload curl output, S3 object listing, Lambda CloudWatch logs -->
+### Serverless upload API (API Gateway, Lambda, S3)
+
+<p align="center">
+  <img width="800" alt="Objects stored in the S3 bucket under uploads/" src="https://github.com/user-attachments/assets/1ad8b714-7a1a-4b1a-845a-0752addacebe" />
+</p>
+<p align="center"><em>Uploaded objects in the private S3 bucket under <code>uploads/</code></em></p>
+
+<p align="center">
+  <img width="700" alt="Upload request through API Gateway" src="https://github.com/user-attachments/assets/d6e73974-91b2-48a0-b2a9-2785f37fbfaa" />
+</p>
+<p align="center"><em>Upload request to <code>POST /upload</code> and the JSON response with the S3 key</em></p>
+
+<p align="center">
+  <img width="700" alt="Rejected upload returns HTTP 400" src="https://github.com/user-attachments/assets/25564e72-2a56-42d0-b0da-60c64471d589" />
+</p>
+<p align="center"><em>Negative test: an invalid file type is rejected by Lambda validation</em></p>
+
+### CloudWatch logs
+
+<p align="center">
+  <img width="800" alt="Lambda CloudWatch logs" src="https://github.com/user-attachments/assets/a517315e-a771-4b7f-a72c-b484435be0f3" />
+</p>
+<p align="center"><em>Lambda function logs in CloudWatch</em></p>
+
+<p align="center">
+  <img width="800" alt="ECS CloudWatch logs for nginx-a" src="https://github.com/user-attachments/assets/4d51b62e-7c4e-43eb-b9c1-2a39a07f70ef" />
+</p>
+<p align="center"><em>ECS container logs for nginx-a</em></p>
+
+<p align="center">
+  <img width="800" alt="ECS CloudWatch logs for nginx-b" src="https://github.com/user-attachments/assets/db49d51e-c85d-443f-9031-4aac0758e48b" />
+</p>
+<p align="center"><em>ECS container logs for nginx-b</em></p>
+
+<p align="center">
+  <img width="750" alt="ECS CloudWatch log group overview" src="https://github.com/user-attachments/assets/96756e78-ef13-45fc-bec6-7d4b0eba83bb" />
+</p>
+<p align="center"><em>ECS log group in CloudWatch</em></p>
 
 Full command output is stored in [`docs/proof/`](docs/proof/) (`ecs-health-check.txt` and `test-output.txt`).
 

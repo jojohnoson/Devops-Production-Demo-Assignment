@@ -45,3 +45,7 @@ output "bucket_name" {
 output "lambda_log_group" {
   value = module.lambda_api.lambda_log_group
 }
+
+output "ecs_log_group" {
+  value = module.ecs.ecs_log_group
+}
