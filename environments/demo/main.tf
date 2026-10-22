@@ -42,3 +42,10 @@ module "ecs" {
 
   depends_on = [module.alb]
 }
+
+module "lambda_api" {
+  source          = "../../modules/lambda_api"
+  project         = var.project
+  bucket_name     = var.bucket_name
+  lambda_role_arn = module.iam.lambda_role_arn
+}

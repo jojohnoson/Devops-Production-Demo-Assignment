@@ -34,4 +34,14 @@ output "ecs_cluster_name" {
   value = module.ecs.cluster_name
 }
 
+output "api_url" {
+  value = module.lambda_api.api_url
+}
 
+output "bucket_name" {
+  value = module.lambda_api.bucket_name
+}
+
+output "lambda_log_group" {
+  value = module.lambda_api.lambda_log_group
+}
