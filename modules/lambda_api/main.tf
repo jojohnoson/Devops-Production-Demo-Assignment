@@ -1,7 +1,6 @@
-# ---------- S3 bucket ----------
 resource "aws_s3_bucket" "uploads" {
   bucket        = var.bucket_name
-  force_destroy = true # demo only, so terraform destroy works with objects inside
+  force_destroy = true 
 }
 
 resource "aws_s3_bucket_public_access_block" "uploads" {
@@ -43,7 +42,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
   }
 }
 
-# ---------- Lambda ----------
 data "archive_file" "lambda" {
   type        = "zip"
   source_file = "${path.module}/src/handler.py"
@@ -75,7 +73,6 @@ resource "aws_lambda_function" "upload" {
   depends_on = [aws_cloudwatch_log_group.lambda]
 }
 
-# ---------- API Gateway (HTTP API) ----------
 resource "aws_apigatewayv2_api" "upload" {
   name          = "${var.project}-upload-api"
   protocol_type = "HTTP"
@@ -105,7 +102,6 @@ resource "aws_apigatewayv2_stage" "default" {
   }
 }
 
-# Lets API Gateway invoke the function (resource-based permission, no role needed)
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
