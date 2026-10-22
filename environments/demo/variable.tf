@@ -4,12 +4,13 @@ variable "aws_region" {
   default     = "ap-south-1"
 }
 
-variable "public_subnet_cidrs" {
-  type        = list(string)
-  description = "List of CIDR blocks for public subnets"
+variable "bucket_name" {
+  type        = string
+  description = "Name of the S3 bucket for storing artifacts"
 }
 
-variable "availability_zones" {
-  type        = list(string)
-  description = "List of availability zones for the subnets"
+variable "project" {
+  type        = string
+  description = "Project name used as a prefix for resource names"
+  default     = "demo"
 }
