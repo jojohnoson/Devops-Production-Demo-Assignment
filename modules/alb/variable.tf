@@ -12,8 +12,3 @@ variable "public_subnet_ids" {
   type        = list(string)
   description = "Public subnet IDs for the ALB (needs 2 AZs)"
 }
-
-variable "services" {
-  type        = map(string)
-  description = "Map of service names to their respective target group names"
-}

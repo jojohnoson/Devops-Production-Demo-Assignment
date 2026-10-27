@@ -47,7 +47,7 @@ resource "aws_lb" "alb_main" {
 }
 
 resource "aws_lb_target_group" "svc" {
-  for_each             = var.services
+  for_each             = toset(["a", "b"])
   name                 = "${var.project}-${each.key}"
   port                 = 80
   protocol             = "HTTP"
